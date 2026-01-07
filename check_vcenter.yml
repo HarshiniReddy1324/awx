@@ -1,22 +1,31 @@
 - name: Discover vCenter inventory
   hosts: localhost
   gather_facts: no
+
   tasks:
     - name: Get datacenters
       community.vmware.vmware_datacenter_info:
         hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_user }}"
-        password: "{{ vcenter_password }}"
-        validate_certs: no
+        username: "{{ vmware_user }}"
+        password: "{{ vmware_password }}"
+        validate_certs: false
       register: dc
 
     - name: Get clusters
       community.vmware.vmware_cluster_info:
         hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_user }}"
-        password: "{{ vcenter_password }}"
-        validate_certs: no
+        username: "{{ vmware_user }}"
+        password: "{{ vmware_password }}"
+        validate_certs: false
       register: cluster
+
+    - name: Get networks
+      community.vmware.vmware_network_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vmware_user }}"
+        password: "{{ vmware_password }}"
+        validate_certs: false
+      register: net
 
     - name: Show results
       debug:
