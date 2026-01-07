@@ -1,0 +1,42 @@
+- name: Generate SSH key on all VMs
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure .ssh directory exists
+      file:
+        path: /home/itadmin/.ssh
+        state: directory
+        owner: itadmin
+        group: itadmin
+        mode: '0700'
+
+    - name: Generate SSH key if not exists
+      openssh_keypair:
+        path: /home/itadmin/.ssh/id_rsa
+        owner: itadmin
+        group: itadmin
+        mode: '0600'
+        type: rsa
+        size: 2048
+
+- name: Collect SSH public keys
+  hosts: all
+  become: true
+  tasks:
+    - name: Read public key
+      slurp:
+        src: /home/itadmin/.ssh/id_rsa.pub
+      register: pubkey
+
+    - set_fact:
+        node_pubkey: "{{ pubkey.content | b64decode }}"
+
+- name: Share SSH keys among all VMs
+  hosts: all
+  become: true
+  tasks:
+    - name: Add all nodes' public keys to authorized_keys
+      authorized_key:
+        user: itadmin
+        key: "{{ hostvars[item].node_pubkey }}"
+      loop: "{{ groups['all'] }}"
