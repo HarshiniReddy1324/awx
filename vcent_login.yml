@@ -1,0 +1,13 @@
+- name: Test vCenter login
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Get vCenter info
+      community.vmware.vmware_about_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        validate_certs: false
+
+    - debug:
+        msg: "Successfully authenticated to vCenter"
