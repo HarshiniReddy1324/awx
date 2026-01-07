@@ -18,14 +18,6 @@
         validate_certs: no
       register: cluster
 
-    - name: Get networks (port groups)
-      community.vmware.vmware_network_info:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_user }}"
-        password: "{{ vcenter_password }}"
-        validate_certs: no
-      register: net
-
     - name: Show results
       debug:
         msg:
