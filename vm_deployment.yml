@@ -22,6 +22,7 @@
         validate_certs: no
         name: "{{ item.name }}"
         template: "{{ template_name }}"
+        folder: "{{ vm_folder }}"
         cluster: "{{ cluster_name }}"
         datacenter: "{{ datacenter_name }}"
         datastore: "{{ datastore_name }}"
