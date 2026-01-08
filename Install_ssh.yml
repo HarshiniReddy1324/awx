@@ -17,10 +17,3 @@
         state: started
         enabled: yes
 
-    - name: Allow SSH through UFW firewall
-      ufw:
-        rule: allow
-        name: ssh
-        state: enabled
-        enabled: yes
-      when: ansible_facts['distribution'] == 'Ubuntu'
