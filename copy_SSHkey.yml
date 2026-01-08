@@ -15,18 +15,14 @@
         owner: "{{ ssh_user }}"
         group: "{{ ssh_user }}"
 
-    - name: Generate SSH key if not exists
-      openssh_keypair:
-        path: "{{ ssh_key_file }}"
-        type: rsa
-        size: 2048
-        owner: "{{ ssh_user }}"
-        group: "{{ ssh_user }}"
-        mode: '0600'
-      register: ssh_keypair_result
-      # Only generate if the key does not exist
-      ignore_errors: yes
-
+    - name: Generate SSH key using ssh-keygen if not exists
+      shell: |
+        if [ ! -f "{{ ssh_key_file }}" ]; then
+          sudo -u {{ ssh_user }} ssh-keygen -t rsa -b 2048 -f "{{ ssh_key_file }}" -N ""
+        fi
+      args:
+        creates: "{{ ssh_key_file }}"
+    
     - name: Gather public keys from all hosts
       slurp:
         src: "{{ ssh_key_file }}.pub"
