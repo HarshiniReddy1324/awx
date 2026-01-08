@@ -1,8 +1,8 @@
 - name: Set up SSH Key-based Authentication on VMs
   hosts: 
-    - web-server-01  # Correct host name from your inventory
-    - app-server-01
-    - db-server-01
+    - web
+    - app
+    - db
   become: true
   tasks:
     - name: Ensure .ssh directory exists
