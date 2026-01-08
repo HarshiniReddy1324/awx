@@ -1,4 +1,4 @@
-- name: Setup SSH Key-based Access on All VMs
+- name: Set up SSH Key-based Authentication on VMs
   hosts: all
   become: true
   vars:
@@ -14,7 +14,7 @@
         mode: '0700'
 
     - name: Generate SSH key if not exists
-      community.crypto.openssh_keypair:
+      ansible.builtin.openssh_keypair:
         path: "{{ ssh_key_path }}"
         owner: itadmin
         group: itadmin
@@ -27,8 +27,8 @@
         src: "{{ ssh_key_path }}.pub"
       register: pubkey
 
-    - name: Share SSH keys among all nodes
-      ansible.posix.authorized_key:
+    - name: Add all public keys to authorized_keys
+      ansible.builtin.authorized_key:
         user: itadmin
         key: "{{ hostvars[item].node_pubkey }}"
       loop: "{{ groups['all'] }}"
