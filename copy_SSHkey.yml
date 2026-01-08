@@ -23,18 +23,21 @@
       args:
         creates: "{{ ssh_key_file }}"
 
-    - name: Gather public keys from all hosts
-      slurp:
+    - name: Fetch public key from remote server
+      fetch:
         src: "{{ ssh_key_file }}.pub"
-      register: pub_keys
+        dest: "/tmp/{{ inventory_hostname }}_id_rsa.pub"
+        flat: yes
+      delegate_to: localhost
 
-    - name: Set fact with all public keys
+    - name: Set fact with public key content
       set_fact:
-        all_pub_keys: "{{ pub_keys.results | map(attribute='content') | map('b64decode') | list }}"
-    
-    - name: Add all public keys to authorized_keys
+        all_pub_keys: "{{ lookup('file', '/tmp/' + inventory_hostname + '_id_rsa.pub') }}"
+
+    - name: Add public key to authorized_keys
       authorized_key:
         user: "{{ ssh_user }}"
-        key: "{{ item }}"
+        key: "{{ all_pub_keys }}"
         state: present
-      loop: "{{ all_pub_keys }}"
+      loop: "{{ groups['all'] }}"
+      delegate_to: "{{ item }}"
