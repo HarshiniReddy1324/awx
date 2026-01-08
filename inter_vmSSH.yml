@@ -1,8 +1,8 @@
 - name: Set up SSH Key-based Authentication on VMs
-  hosts: 
-    - web
-    - app
-    - db
+  hosts:
+    - 172.30.30.245  # IP for web server
+    - 172.30.30.246  # IP for app server
+    - 172.30.30.247  # IP for db server
   become: true
   tasks:
     - name: Ensure .ssh directory exists
@@ -27,4 +27,7 @@
       authorized_key:
         user: itadmin
         key: "{{ hostvars[item].pubkey.content | b64decode }}"
-      loop: "{{ groups['all'] }}"
+      loop:
+        - "172.30.30.245"
+        - "172.30.30.246"
+        - "172.30.30.247"
