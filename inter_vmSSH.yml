@@ -1,5 +1,5 @@
 - name: Set up SSH Key-based Authentication on VMs
-  hosts: all  # This targets all the hosts in your inventory
+  hosts: localhost  # Localhost because we are passing IPs dynamically
   become: true
   vars:
     ssh_key_path: /home/itadmin/.ssh/id_rsa
@@ -17,18 +17,21 @@
       command:
         cmd: "ssh-keygen -t rsa -b 2048 -f {{ ssh_key_path }} -N ''"
         creates: "{{ ssh_key_path }}"
-        
+
     - name: Read public key
       slurp:
         src: "{{ ssh_key_path }}.pub"
       register: pubkey
 
-    - name: Add all public keys to authorized_keys
+    - name: Add public key to authorized_keys on all VMs
       authorized_key:
         user: itadmin
-        key: "{{ hostvars[item].node_pubkey }}"
-      loop: "{{ groups['web'] + groups['app'] + groups['db'] }}"  # Loop through each group individually
+        key: "{{ pubkey.content | b64decode }}"
+        state: present
+      loop: "{{ vm_ips }}"  # Loop through the dictionary
       loop_control:
-        loop_var: item
+        loop_var: ip_data
+      delegate_to: "{{ ip_data.ip }}"  # Delegate the task to each specific IP
       vars:
-        node_pubkey: "{{ pubkey.content | b64decode }}"
+        node_role: "{{ ip_data.role }}"
+        node_ip: "{{ ip_data.ip }}"
