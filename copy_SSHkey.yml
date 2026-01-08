@@ -28,7 +28,9 @@
         src: "{{ ssh_key_file }}.pub"
         dest: "/tmp/{{ inventory_hostname }}_id_rsa.pub"
         flat: yes
-      delegate_to: localhost
+        become: true
+        become_user: "{{ ssh_user }}"
+        delegate_to: localhost
 
     - name: Set fact with public key content
       set_fact:
