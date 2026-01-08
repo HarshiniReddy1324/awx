@@ -6,7 +6,7 @@
 
   tasks:
     - name: Ensure .ssh directory exists
-      ansible.builtin.file:
+      file:
         path: /home/itadmin/.ssh
         state: directory
         owner: itadmin
@@ -14,21 +14,17 @@
         mode: '0700'
 
     - name: Generate SSH key if not exists
-      ansible.builtin.openssh_keypair:
-        path: "{{ ssh_key_path }}"
-        owner: itadmin
-        group: itadmin
-        mode: '0600'
-        type: rsa
-        size: 2048
-
+      command:
+        cmd: "ssh-keygen -t rsa -b 2048 -f {{ ssh_key_path }} -N ''"
+        creates: "{{ ssh_key_path }}"
+        
     - name: Read public key
-      ansible.builtin.slurp:
+      slurp:
         src: "{{ ssh_key_path }}.pub"
       register: pubkey
 
     - name: Add all public keys to authorized_keys
-      ansible.builtin.authorized_key:
+      authorized_key:
         user: itadmin
         key: "{{ hostvars[item].node_pubkey }}"
       loop: "{{ groups['all'] }}"
