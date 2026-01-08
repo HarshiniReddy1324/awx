@@ -1,47 +1,38 @@
----
-- name: Setup passwordless SSH between all VMs
+- name: Setup SSH Key-based Access on All VMs
   hosts: all
   become: true
-  gather_facts: false
-  collections:
-    - community.crypto
-    - ansible.posix
-
   vars:
-    ssh_user: itadmin
-    ssh_dir: "/home/{{ ssh_user }}/.ssh"
-    ssh_key_path: "{{ ssh_dir }}/id_rsa"
+    ssh_key_path: /home/itadmin/.ssh/id_rsa
 
   tasks:
     - name: Ensure .ssh directory exists
       ansible.builtin.file:
-        path: "{{ ssh_dir }}"
+        path: /home/itadmin/.ssh
         state: directory
-        owner: "{{ ssh_user }}"
-        group: "{{ ssh_user }}"
+        owner: itadmin
+        group: itadmin
         mode: '0700'
 
     - name: Generate SSH key if not exists
       community.crypto.openssh_keypair:
         path: "{{ ssh_key_path }}"
+        owner: itadmin
+        group: itadmin
+        mode: '0600'
         type: rsa
         size: 2048
-        owner: "{{ ssh_user }}"
-        group: "{{ ssh_user }}"
-        mode: '0600'
 
     - name: Read public key
       ansible.builtin.slurp:
         src: "{{ ssh_key_path }}.pub"
       register: pubkey
 
-    - name: Set node public key fact
-      ansible.builtin.set_fact:
-        node_pubkey: "{{ pubkey.content | b64decode }}"
-
-    - name: Distribute SSH keys to all nodes
+    - name: Share SSH keys among all nodes
       ansible.posix.authorized_key:
-        user: "{{ ssh_user }}"
+        user: itadmin
         key: "{{ hostvars[item].node_pubkey }}"
-        state: present
       loop: "{{ groups['all'] }}"
+      loop_control:
+        loop_var: item
+      vars:
+        node_pubkey: "{{ pubkey.content | b64decode }}"
