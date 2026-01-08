@@ -1,8 +1,9 @@
-- name: Setup SSH Key-Based Authentication Between VMs
-  hosts: all
-  gather_facts: no
+- name: Set up SSH Key-based Authentication on VMs
+  hosts: 
+    - web-server-01  # Correct host name from your inventory
+    - app-server-01
+    - db-server-01
   become: true
-
   tasks:
     - name: Ensure .ssh directory exists
       file:
@@ -15,8 +16,8 @@
     - name: Generate SSH key if not exists
       command:
         cmd: "ssh-keygen -t rsa -b 2048 -f /home/itadmin/.ssh/id_rsa -N ''"
-        creates: /home/itadmin/.ssh/id_rsa
-
+        creates: "/home/itadmin/.ssh/id_rsa"
+        
     - name: Collect public key
       slurp:
         src: /home/itadmin/.ssh/id_rsa.pub
