@@ -1,0 +1,44 @@
+---
+- name: Setup Passwordless SSH Between All VMs
+  hosts: all
+  become: yes
+  vars:
+    ssh_user: itadmin
+    ssh_key_file: /home/itadmin/.ssh/id_rsa
+
+  tasks:
+    - name: Ensure .ssh directory exists
+      file:
+        path: "/home/{{ ssh_user }}/.ssh"
+        state: directory
+        mode: '0700'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+
+    - name: Generate SSH key if not exists
+      openssh_keypair:
+        path: "{{ ssh_key_file }}"
+        type: rsa
+        size: 2048
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+        mode: '0600'
+      register: ssh_keypair_result
+      # Only generate if the key does not exist
+      ignore_errors: yes
+
+    - name: Gather public keys from all hosts
+      slurp:
+        src: "{{ ssh_key_file }}.pub"
+      register: pub_keys
+
+    - name: Set fact with all public keys
+      set_fact:
+        all_pub_keys: "{{ pub_keys.results | map(attribute='content') | map('b64decode') | list }}"
+
+    - name: Add all public keys to authorized_keys
+      authorized_key:
+        user: "{{ ssh_user }}"
+        key: "{{ item }}"
+        state: present
+      loop: "{{ all_pub_keys }}"
