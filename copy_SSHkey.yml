@@ -1,8 +1,7 @@
 ---
 - name: Setup Passwordless SSH Between All VMs
   hosts: all
-  become: yes
-  become_exe: "/usr/bin/sudo"
+  become: false
   vars:
     ssh_user: itadmin
     ssh_key_file: /home/itadmin/.ssh/id_rsa
