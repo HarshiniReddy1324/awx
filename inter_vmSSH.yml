@@ -1,15 +1,15 @@
 - name: Set up SSH Key-based Authentication on VMs
-  hosts: localhost  # Localhost because we are passing IPs dynamically
+  hosts: localhost
+  become: false
+  gather_facts: yes
   vars:
-    ssh_key_path: /home/itadmin/.ssh/id_rsa
+    ssh_key_path: /root/.ssh/id_rsa  # Use /root/.ssh or another directory you have access to
 
   tasks:
     - name: Ensure .ssh directory exists
       file:
-        path: /home/itadmin/.ssh
+        path: "{{ ssh_key_path | dirname }}"  # Ensure the directory exists
         state: directory
-        owner: itadmin
-        group: itadmin
         mode: '0700'
 
     - name: Generate SSH key if not exists
@@ -27,10 +27,7 @@
         user: itadmin
         key: "{{ pubkey.content | b64decode }}"
         state: present
-      loop: "{{ vm_ips }}"  # Loop through the dictionary
+      loop: "{{ vm_ips }}"
       loop_control:
         loop_var: ip_data
-      delegate_to: "{{ ip_data.ip }}"  # Delegate the task to each specific IP
-      vars:
-        node_role: "{{ ip_data.role }}"
-        node_ip: "{{ ip_data.ip }}"
+      delegate_to: "{{ ip_data.ip }}"
