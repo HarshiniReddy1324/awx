@@ -1,6 +1,5 @@
 - name: Set up SSH Key-based Authentication on VMs
   hosts: localhost  # Localhost because we are passing IPs dynamically
-  become: true
   vars:
     ssh_key_path: /home/itadmin/.ssh/id_rsa
 
