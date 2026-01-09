@@ -26,22 +26,9 @@
         group: itadmin
         mode: '0755'
 
-    - name: Check if virtual environment exists
-      stat:
-        path: "{{ venv_directory }}"
-      register: venv_stat
-
     - name: Create virtual environment
       command: python3 -m venv {{ venv_directory }}
-      when: not venv_stat.stat.exists
-
-    - name: Ensure correct permissions on virtualenv
-      file:
-        path: "{{ venv_directory }}"
-        owner: itadmin
-        group: itadmin
-        recurse: yes
-        mode: '0755'
+      when: not virtualenv_stat.stat.exists
 
     - name: Install Django in virtual environment
       pip:
@@ -49,11 +36,16 @@
         virtualenv: "{{ venv_directory }}"
       become_user: itadmin
 
-    - name: Create Django project (only if not exists)
+    - name: Check if Django project exists
+      stat:
+        path: "{{ app_directory }}/{{ django_project_name }}"
+      register: project_stat
+
+    - name: Create Django project if it doesn't exist
       command: django-admin startproject {{ django_project_name }}
       args:
         chdir: "{{ app_directory }}"
-      when: not (ansible_facts['ansible_mounts'] | selectattr('mount', 'equalto', app_directory) | map(attribute='mount') | list)[0]
+      when: not project_stat.stat.exists
 
     - name: Update Django settings to allow all hosts
       lineinfile:
@@ -80,11 +72,7 @@
 
           [Install]
           WantedBy=multi-user.target
-
-    - name: Set correct permissions on systemd service file
-      file:
-        path: /etc/systemd/system/django-app.service
-        mode: '0644'
+      mode: '0644'
 
     - name: Start Django application service
       systemd:
