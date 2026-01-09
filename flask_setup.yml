@@ -1,0 +1,50 @@
+---
+- name: Install Application Server and deploy backend
+  hosts: app-server-01
+  become: yes
+  vars:
+    app_directory: "/opt/myapp"
+    app_file: "{{ app_directory }}/app.py"
+
+  tasks:
+    - name: Install required packages for Python (Flask)
+      apt:
+        name:
+          - python3-pip
+          - python3-venv
+        state: present
+        update_cache: yes
+
+    - name: Install Flask via pip
+      pip:
+        name: flask
+        executable: pip3
+
+    - name: Create application directory
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: itadmin
+        group: itadmin
+        mode: '0755'
+
+    - name: Create Flask application (app.py)
+      copy:
+        content: |
+          from flask import Flask
+          app = Flask(__name__)
+
+          @app.route('/')
+          def hello_world():
+              return 'Hello from the Application Server!'
+          if __name__ == '__main__':
+              app.run(host='0.0.0.0', port=5000)
+        dest: "{{ app_file }}"
+        owner: itadmin
+        group: itadmin
+        mode: '0755'
+
+    - name: Start the Flask app (run in the background)
+      command: python3 {{ app_file }} &
+      args:
+        chdir: "{{ app_directory }}"
