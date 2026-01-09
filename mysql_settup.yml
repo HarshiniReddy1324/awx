@@ -21,12 +21,12 @@
         enabled: yes
 
     - name: Create database
-      mysql_db:
+      community.mysql.mysql_db:
         name: "{{ db_name }}"
         state: present
 
     - name: Create database user
-      mysql_user:
+      community.mysql.mysql_user:
         name: "{{ db_user }}"
         password: "{{ db_password }}"
         priv: "{{ db_name }}.*:ALL"
