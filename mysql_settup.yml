@@ -1,0 +1,33 @@
+---
+- name: Install Database Server (MySQL)
+  hosts: db-server-01
+  become: yes
+  vars:
+    db_name: mydb
+    db_user: appuser
+    db_password: appuserpass
+
+  tasks:
+    - name: Install MySQL Server
+      apt:
+        name: mysql-server
+        state: present
+        update_cache: yes
+
+    - name: Start and enable MySQL service
+      systemd:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Create database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+
+    - name: Create database user
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        state: present
