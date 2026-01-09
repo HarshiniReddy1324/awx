@@ -3,10 +3,10 @@
   hosts: localhost
   tasks:
     - name: Run Web Server Playbook
-      include_tasks: web_server.yml
+      include_tasks: nginx_setup.yml
 
     - name: Run Application Server Playbook
-      include_tasks: app_server.yml
+      include_tasks: flask_setup.yml
 
     - name: Run Database Server Playbook
-      include_tasks: db_server.yml
+      include_tasks: mysql_settup.yml
