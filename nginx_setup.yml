@@ -3,8 +3,8 @@
   hosts: web-server-01
   become: yes
   vars:
-    nginx_document_root: "/usr/share/nginx/html"
-    index_file: "{{ nginx_document_root }}/index.html"
+    nginx_document_root: "/usr/share/nginx/html"  
+    index_file: "{{ nginx_document_root }}/index.html"  
 
   tasks:
     - name: Install Nginx web server
