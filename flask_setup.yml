@@ -72,7 +72,11 @@
 
           [Install]
           WantedBy=multi-user.target
-      mode: '0644'
+
+    - name: Set correct permissions on systemd service file
+      file:
+        path: /etc/systemd/system/django-app.service
+        mode: '0644'
 
     - name: Start Django application service
       systemd:
