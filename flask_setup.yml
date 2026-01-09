@@ -1,19 +1,18 @@
 ---
-- name: Install Application Server and deploy Django backend
+- name: Install Application Server and deploy backend
   hosts: app-server-01
   become: yes
   vars:
-    app_directory: "{{ app_directory }}"
-    venv_directory: "{{ venv_directory }}"
-    django_project_name: "myproject"
+    app_directory: "/opt/myapp"
+    venv_directory: "{{ app_directory }}/venv"
+    project_directory: "{{ app_directory }}/myproject"
 
   tasks:
-    - name: Install required packages for Python (Django) and virtualenv
+    - name: Install required packages for Python (Django)
       apt:
         name:
           - python3-pip
           - python3-venv
-          - python3-dev
           - python3-django
         state: present
         update_cache: yes
@@ -26,23 +25,30 @@
         group: itadmin
         mode: '0755'
 
-    - name: Create Django project
-      command: django-admin startproject {{ django_project_name }}
+    - name: Create virtual environment
+      command: python3 -m venv {{ venv_directory }}
+      creates: "{{ venv_directory }}"
+
+    - name: Activate virtual environment and install Django
+      pip:
+        name: django
+        virtualenv: "{{ venv_directory }}"
+      become_user: itadmin
+
+    - name: Check if Django project already exists
+      stat:
+        path: "{{ project_directory }}"
+      register: project_exists
+
+    - name: Create Django project if it doesn't exist
+      command: django-admin startproject myproject
       args:
         chdir: "{{ app_directory }}"
+      when: not project_exists.stat.exists
 
-    - name: Update Django settings to allow all hosts
-      lineinfile:
-        path: "{{ app_directory }}/{{ django_project_name }}/{{ django_project_name }}/settings.py"
-        regexp: "^ALLOWED_HOSTS"
-        line: "ALLOWED_HOSTS = ['*']"
-        owner: itadmin
-        group: itadmin
-        mode: '0644'
-
-    - name: Start Django development server (run in the background)
-      command: python3 {{ app_directory }}/{{ django_project_name }}/manage.py runserver 0.0.0.0:8000
+    - name: Start the Django app
+      command: "{{ venv_directory }}/bin/python3 {{ project_directory }}/manage.py runserver 0.0.0.0:8000"
       args:
-        chdir: "{{ app_directory }}/{{ django_project_name }}"
-      async: 600
+        chdir: "{{ app_directory }}"
+      async: 0
       poll: 0
