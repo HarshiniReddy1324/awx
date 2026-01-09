@@ -35,6 +35,14 @@
       command: python3 -m venv {{ venv_directory }}
       when: not venv_stat.stat.exists
 
+    - name: Ensure correct permissions on virtualenv
+      file:
+        path: "{{ venv_directory }}"
+        owner: itadmin
+        group: itadmin
+        recurse: yes
+        mode: '0755'
+
     - name: Install Django in virtual environment
       pip:
         name: django
