@@ -45,6 +45,6 @@
         mode: '0755'
 
     - name: Start the Flask app (run in the background)
-      command: python3 {{ app_file }} &
+      command: nohup python3 {{ app_file }} &    # Running it in the background
       args:
         chdir: "{{ app_directory }}"
