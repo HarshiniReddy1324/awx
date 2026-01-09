@@ -1,0 +1,38 @@
+---
+- name: Install Web Server (Nginx) and deploy frontend
+  hosts: web-server-01
+  become: yes
+  vars:
+    nginx_document_root: "/usr/share/nginx/html"
+    index_file: "{{ nginx_document_root }}/index.html"
+
+  tasks:
+    - name: Install Nginx web server
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Nginx service
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Create a basic index.html file
+      copy:
+        content: |
+          <html>
+            <head><title>Welcome to the Web Server</title></head>
+            <body><h1>This is the Web Server (Frontend) using Nginx!</h1></body>
+          </html>
+        dest: "{{ index_file }}"
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Ensure Nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
