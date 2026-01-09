@@ -26,10 +26,15 @@
         group: itadmin
         mode: '0755'
 
+    - name: Check if virtual environment exists
+      stat:
+        path: "{{ venv_directory }}"
+      register: venv_stat
+
     - name: Create virtual environment
       command: python3 -m venv {{ venv_directory }}
-      creates: "{{ venv_directory }}"
-    
+      when: not venv_stat.stat.exists
+
     - name: Install Django in virtual environment
       pip:
         name: django
