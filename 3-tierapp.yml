@@ -1,0 +1,12 @@
+---
+- name: Deploy 3-Tier Application
+  hosts: localhost
+  tasks:
+    - name: Run Web Server Playbook
+      include_tasks: web_server.yml
+
+    - name: Run Application Server Playbook
+      include_tasks: app_server.yml
+
+    - name: Run Database Server Playbook
+      include_tasks: db_server.yml
