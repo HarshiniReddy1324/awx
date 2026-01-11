@@ -55,7 +55,7 @@
 
     - name: Configure Django database connection in settings.py
       lineinfile:
-        path: "{{ django_project_dir }}/myproject/myproject/settings.py"  # Corrected path
+        path: "{{ django_project_dir }}/myproject/myproject/settings.py"  # Corrected path here
         regexp: '^DATABASES ='
         line: |
           DATABASES = {
