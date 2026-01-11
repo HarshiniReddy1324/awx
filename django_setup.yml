@@ -25,13 +25,9 @@
           - python3-pip
           - python3-dev
           - libmysqlclient-dev
-          - python3-venv
+          - python3-venv  # Ensure python3-venv is installed
           - git
         state: present
-
-    - name: Install virtualenv globally
-      pip:
-        name: virtualenv
 
     - name: Create a directory for the Django project
       file:
@@ -48,7 +44,7 @@
 
     - name: Install Django in the virtual environment
       pip:
-        requirements: "{{ django_project_dir }}/requirements.txt"
+        name: django
         virtualenv: "{{ django_project_dir }}/venv"
 
     - name: Install mysqlclient (MySQL client for Django)
@@ -97,6 +93,4 @@
     - name: Start Django development server (optional)
       command:
         cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py runserver 0.0.0.0:8000"
-        chdir: "{{ django_project_dir }}"
-        async: 0
-        poll: 0
+        chdir: "{{ django_project_dir
