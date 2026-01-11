@@ -4,11 +4,9 @@
 
   tasks:
 
-    - name: Install MySQL server and Python dependency
+    - name: Install MySQL Server
       apt:
-        name:
-          - mysql-server
-          - python3-mysqldb
+        name: mysql-server
         state: present
         update_cache: yes
 
@@ -19,18 +17,13 @@
         enabled: yes
 
     - name: Create database
-      community.mysql.mysql_db:
-        name: "{{ db_name }}"
-        state: present
-        login_unix_socket: /var/run/mysqld/mysqld.sock
-        check_implicit_admin: yes
+      shell: |
+        mysql -e "CREATE DATABASE IF NOT EXISTS {{ db_name }};"
 
     - name: Create database user
-      community.mysql.mysql_user:
-        name: "{{ db_user }}"
-        password: "{{ db_password }}"
-        priv: "{{ db_name }}.*:ALL"
-        host: "%"
-        state: present
-        login_unix_socket: /var/run/mysqld/mysqld.sock
-        check_implicit_admin: yes
+      shell: |
+        mysql -e "CREATE USER IF NOT EXISTS '{{ db_user }}'@'%' IDENTIFIED BY '{{ db_password }}';"
+
+    - name: Grant privileges
+      shell: |
+        mysql -e "GRANT ALL PRIVILEGES ON {{ db_name }}.* TO '{{ db_user }}'@'%'; FLUSH PRIVILEGES;"
