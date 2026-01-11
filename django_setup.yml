@@ -81,8 +81,8 @@
 
     - name: Run Django migrations
       command:
-        cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py migrate"
-        chdir: "{{ django_project_dir }}"
+        cmd: "{{ django_project_dir }}/myproject/venv/bin/python {{ django_project_dir }}/myproject/manage.py migrate"
+        chdir: "{{ django_project_dir }}/myproject"
 
     - name: Create Django superuser
       command:
