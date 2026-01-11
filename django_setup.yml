@@ -25,7 +25,7 @@
           - python3-pip
           - python3-dev
           - libmysqlclient-dev
-          - python3-venv  # Ensure python3-venv is installed
+          - python3-venv
           - git
         state: present
 
@@ -93,4 +93,6 @@
     - name: Start Django development server (optional)
       command:
         cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py runserver 0.0.0.0:8000"
-        chdir: "{{ django_project_dir
+        chdir: "{{ django_project_dir }}"
+        async: 0
+        poll: 0
