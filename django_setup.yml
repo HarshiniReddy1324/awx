@@ -55,7 +55,7 @@
 
     - name: Check if the Django project already exists
       stat:
-        path: "{{ django_project_dir }}/manage.py"
+        path: "{{ django_project_dir }}/myproject/manage.py"
       register: project_exists
 
     - name: Create Django project (if not already present)
@@ -65,7 +65,7 @@
 
     - name: Configure Django database connection in settings.py
       lineinfile:
-        path: "{{ django_project_dir }}/myproject/settings.py"  # Corrected path to settings.py
+        path: "{{ django_project_dir }}/myproject/settings.py"  # Correct path to settings.py
         regexp: '^DATABASES ='
         line: |
           DATABASES = {
@@ -81,24 +81,24 @@
 
     - name: Run Django migrations
       command:
-        cmd: "{{ django_project_dir }}/myproject/venv/bin/python {{ django_project_dir }}/myproject/manage.py migrate"
+        cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py migrate"
         chdir: "{{ django_project_dir }}/myproject"
 
     - name: Create Django superuser
       command:
         cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py createsuperuser --noinput --username {{ django_admin_user }} --email {{ django_admin_email }}"
-        chdir: "{{ django_project_dir }}"
+        chdir: "{{ django_project_dir }}/myproject"
       when: django_admin_user is defined and django_admin_email is defined
 
     - name: Set superuser password
       command:
         cmd: "echo \"from django.contrib.auth.models import User; user = User.objects.get(username='{{ django_admin_user }}'); user.set_password('{{ django_admin_password }}'); user.save()\" | {{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py shell"
-        chdir: "{{ django_project_dir }}"
+        chdir: "{{ django_project_dir }}/myproject"
       when: django_admin_password is defined
 
     - name: Start Django development server (optional)
       command:
         cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py runserver 0.0.0.0:8000"
-        chdir: "{{ django_project_dir }}"
+        chdir: "{{ django_project_dir }}/myproject"
         async: 0
         poll: 0
