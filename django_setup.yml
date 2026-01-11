@@ -53,6 +53,16 @@
         name: mysqlclient
         virtualenv: "{{ django_project_dir }}/venv"
 
+    - name: Check if the Django project already exists
+      stat:
+        path: "{{ django_project_dir }}/myproject/manage.py"
+      register: project_exists
+
+    - name: Create Django project (if not already present)
+      command:
+        cmd: django-admin startproject myproject {{ django_project_dir }}
+      when: not project_exists.stat.exists
+
     - name: Configure Django database connection in settings.py
       lineinfile:
         path: "{{ django_project_dir }}/myproject/settings.py"  # Corrected path to settings.py
