@@ -58,10 +58,10 @@
         path: "{{ django_project_dir }}/myproject/manage.py"  # Check for the correct manage.py
       register: project_exists
 
-    - name: Create Django project (if not already present)
-      command:
-        cmd: django-admin startproject myproject {{ django_project_dir }}
-      when: not project_exists.stat.exists  # Only run if manage.py doesn't exist
+    - name: Skip Django project creation if it exists
+      debug:
+        msg: "Django project already exists. Skipping creation."
+      when: project_exists.stat.exists
 
     - name: Configure Django database connection in settings.py
       lineinfile:
@@ -78,23 +78,25 @@
                   'PORT': '3306',
               }
           }
+      when: project_exists.stat.exists  # Only run if project exists
 
     - name: Run Django migrations
       command:
         cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py migrate"
         chdir: "{{ django_project_dir }}/myproject"
+      when: project_exists.stat.exists  # Only run if project exists
 
     - name: Create Django superuser
       command:
         cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py createsuperuser --noinput --username {{ django_admin_user }} --email {{ django_admin_email }}"
         chdir: "{{ django_project_dir }}/myproject"
-      when: django_admin_user is defined and django_admin_email is defined
+      when: project_exists.stat.exists and django_admin_user is defined and django_admin_email is defined
 
     - name: Set superuser password
       command:
         cmd: "echo \"from django.contrib.auth.models import User; user = User.objects.get(username='{{ django_admin_user }}'); user.set_password('{{ django_admin_password }}'); user.save()\" | {{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py shell"
         chdir: "{{ django_project_dir }}/myproject"
-      when: django_admin_password is defined
+      when: project_exists.stat.exists and django_admin_password is defined
 
     - name: Start Django development server (optional)
       command:
@@ -102,3 +104,4 @@
         chdir: "{{ django_project_dir }}/myproject"
         async: 0
         poll: 0
+      when: project_exists.stat.exists  # Only run if project exists
