@@ -1,0 +1,102 @@
+---
+- name: Setup Django Environment
+  hosts: app-server-01  # Replace with your Django VM hostname or IP
+  become: yes  # Run as root user
+  
+  vars:
+    db_name: mydb
+    db_user: appuser
+    db_password: appuserpass
+    django_project_dir: /home/itadmin/myproject  # Path to your project folder
+    django_admin_user: admin
+    django_admin_email: admin@example.com
+    django_admin_password: adminpass
+  
+  tasks:
+
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+
+    - name: Install required packages for Python, MySQL, and dependencies
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-dev
+          - libmysqlclient-dev
+          - python3-venv
+          - git
+        state: present
+
+    - name: Install virtualenv globally
+      pip:
+        name: virtualenv
+
+    - name: Create a directory for the Django project
+      file:
+        path: "{{ django_project_dir }}"
+        state: directory
+        owner: itadmin
+        group: itadmin
+        mode: '0755'
+
+    - name: Create a Python virtual environment
+      command: python3 -m venv {{ django_project_dir }}/venv
+      args:
+        creates: "{{ django_project_dir }}/venv"
+
+    - name: Install Django in the virtual environment
+      pip:
+        requirements: "{{ django_project_dir }}/requirements.txt"
+        virtualenv: "{{ django_project_dir }}/venv"
+
+    - name: Install mysqlclient (MySQL client for Django)
+      pip:
+        name: mysqlclient
+        virtualenv: "{{ django_project_dir }}/venv"
+
+    - name: Create Django project (if not already present)
+      command:
+        cmd: django-admin startproject myproject {{ django_project_dir }}
+        creates: "{{ django_project_dir }}/myproject/manage.py"
+
+    - name: Configure Django database connection in settings.py
+      lineinfile:
+        path: "{{ django_project_dir }}/myproject/myproject/settings.py"
+        regexp: '^DATABASES ='
+        line: |
+          DATABASES = {
+              'default': {
+                  'ENGINE': 'django.db.backends.mysql',
+                  'NAME': '{{ db_name }}',
+                  'USER': '{{ db_user }}',
+                  'PASSWORD': '{{ db_password }}',
+                  'HOST': 'localhost',  # Can be a hostname or IP if DB is on a separate server
+                  'PORT': '3306',
+              }
+          }
+
+    - name: Run Django migrations
+      command:
+        cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py migrate"
+        chdir: "{{ django_project_dir }}"
+
+    - name: Create Django superuser
+      command:
+        cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py createsuperuser --noinput --username {{ django_admin_user }} --email {{ django_admin_email }}"
+        chdir: "{{ django_project_dir }}"
+      when: django_admin_user is defined and django_admin_email is defined
+
+    - name: Set superuser password
+      command:
+        cmd: "echo \"from django.contrib.auth.models import User; user = User.objects.get(username='{{ django_admin_user }}'); user.set_password('{{ django_admin_password }}'); user.save()\" | {{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py shell"
+        chdir: "{{ django_project_dir }}"
+      when: django_admin_password is defined
+
+    - name: Start Django development server (optional)
+      command:
+        cmd: "{{ django_project_dir }}/venv/bin/python {{ django_project_dir }}/myproject/manage.py runserver 0.0.0.0:8000"
+        chdir: "{{ django_project_dir }}"
+        async: 0
+        poll: 0
