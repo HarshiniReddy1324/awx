@@ -1,16 +1,14 @@
----
 - name: Install Database Server (MySQL)
   hosts: db-server-01
   become: yes
-  vars:
-    db_name: mydb
-    db_user: appuser
-    db_password: appuserpass
 
   tasks:
-    - name: Install MySQL Server
+
+    - name: Install MySQL server and Python dependency
       apt:
-        name: mysql-server
+        name:
+          - mysql-server
+          - python3-mysqldb
         state: present
         update_cache: yes
 
@@ -24,10 +22,15 @@
       community.mysql.mysql_db:
         name: "{{ db_name }}"
         state: present
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
 
     - name: Create database user
       community.mysql.mysql_user:
         name: "{{ db_user }}"
         password: "{{ db_password }}"
         priv: "{{ db_name }}.*:ALL"
+        host: "%"
         state: present
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
