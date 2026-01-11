@@ -55,7 +55,7 @@
 
     - name: Check if the Django project already exists
       stat:
-        path: "{{ django_project_dir }}/myproject/manage.py"  # Check for the correct manage.py
+        path: "{{ django_project_dir }}/myproject/manage.py"  # Full path to manage.py
       register: project_exists
 
     - name: Skip Django project creation if it exists
