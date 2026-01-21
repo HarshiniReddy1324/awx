@@ -4,7 +4,7 @@ This repository contains Ansible playbooks and AWX configurations used to automa
 
 The full architecture, automation workflow, and implementation details are documented in this Medium blog:
 
-🔗 **Project Blog:** https://medium.com/
+🔗 **Project Blog:** https://medium.com/@pharshinireddy13/automating-a-3-tier-application-on-vmware-vsphere-using-ansible-awx-8454b99fb512?postPublishedType=initial
 
 ## Tech Stack
 - VMware vSphere / vCenter
